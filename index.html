@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La valeur à vie du client — activité</title>
+<style>
+/* =========================================================================
+   PARAMÈTRES MODIFIABLES — pour changer une valeur, c'est ici et nulle part
+   ailleurs. Voir aussi le bloc DONNEES en JavaScript plus bas.
+   ========================================================================= */
+:root{
+  --fond:#0F1B2D;
+  --surface:#17263C;
+  --surface-2:#1D2E48;
+  --trait:#26374F;
+  --texte:#F5F1E8;
+  --gris:#8A97A8;
+  --bleu:#4A7DB5;      /* D3N Industries */
+  --orange:#E8703A;    /* Atelier de Roure */
+  --vert:#4CAF7D;      /* validation */
+  --rouge:#D2695F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--fond);
+  color:var(--texte);
+  font-family:Montserrat,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  line-height:1.45;
+  padding:20px 18px 40px;
+  max-width:560px;
+  margin:0 auto;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------------------------------------------------------------- entête */
+.entete{margin-bottom:18px}
+.entete h1{font-size:1.35rem;font-weight:700;letter-spacing:-.01em}
+.entete p{color:var(--gris);font-size:.9rem;margin-top:4px}
+
+/* ------------------------------------------------------------ résultats */
+.resultats{
+  position:sticky;top:0;z-index:5;
+  background:var(--fond);
+  padding:14px 0 12px;
+  border-bottom:1px solid var(--trait);
+  margin-bottom:20px;
+}
+.ligne{margin-bottom:14px}
+.ligne:last-child{margin-bottom:0}
+.ligne-tete{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.nom{font-size:.9rem;font-weight:600}
+.valeur{font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.piste{height:16px;background:var(--surface-2);border-radius:8px;overflow:hidden}
+.remplissage{height:100%;border-radius:8px;transition:width .18s ease-out}
+.d3n .nom,.d3n .valeur{color:var(--bleu)}
+.d3n .remplissage{background:var(--bleu)}
+.roure .nom,.roure .valeur{color:var(--orange)}
+.roure .remplissage{background:var(--orange)}
+.ecart{
+  text-align:center;font-size:.82rem;color:var(--gris);
+  margin-top:12px;font-variant-numeric:tabular-nums;
+}
+.ecart b{color:var(--texte);font-weight:600}
+
+/* --------------------------------------------------------------- cartes */
+.carte{
+  background:var(--surface);
+  border-radius:14px;
+  padding:16px 16px 8px;
+  margin-bottom:16px;
+  border-left:4px solid var(--trait);
+}
+.carte.d3n{border-left-color:var(--bleu)}
+.carte.roure{border-left-color:var(--orange)}
+.carte h2{font-size:1rem;font-weight:700;margin-bottom:2px}
+.carte .panier{font-size:.8rem;color:var(--gris);margin-bottom:14px}
+
+.champ{margin-bottom:16px}
+.champ-tete{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.champ-tete label{font-size:.82rem;color:var(--gris)}
+.champ-tete output{font-size:.92rem;font-weight:600;font-variant-numeric:tabular-nums}
+
+input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  width:100%;height:34px;background:transparent;cursor:pointer;display:block;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:6px;background:var(--surface-2);border-radius:3px;
+}
+input[type=range]::-moz-range-track{
+  height:6px;background:var(--surface-2);border-radius:3px;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:30px;height:30px;border-radius:50%;
+  background:var(--texte);border:none;margin-top:-12px;
+  box-shadow:0 1px 4px rgba(0,0,0,.45);
+}
+input[type=range]::-moz-range-thumb{
+  width:30px;height:30px;border-radius:50%;
+  background:var(--texte);border:none;
+  box-shadow:0 1px 4px rgba(0,0,0,.45);
+}
+input[type=range]:focus-visible{outline:none}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--vert)}
+input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 4px var(--vert)}
+
+/* ---------------------------------------------------------------- défis */
+.defi{
+  background:var(--surface);
+  border:1px solid var(--trait);
+  border-radius:14px;
+  padding:18px 16px;
+  margin-top:24px;
+}
+.defi-rang{font-size:.78rem;color:var(--gris);margin-bottom:8px}
+.defi-question{font-size:1rem;font-weight:600;margin-bottom:16px}
+.consigne{
+  font-size:.85rem;color:var(--gris);
+  background:var(--surface-2);border-radius:10px;
+  padding:10px 12px;margin-bottom:14px;
+}
+.choix{display:flex;flex-direction:column;gap:8px}
+.choix button{
+  font:inherit;font-size:.92rem;text-align:left;
+  background:var(--surface-2);color:var(--texte);
+  border:1px solid var(--trait);border-radius:10px;
+  padding:13px 14px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.choix button:hover:not(:disabled){border-color:var(--gris)}
+.choix button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.choix button:disabled{cursor:default;opacity:.55}
+.choix button.juste{border-color:var(--vert);background:rgba(76,175,125,.14);opacity:1}
+.choix button.faux{border-color:var(--rouge);background:rgba(210,105,95,.12);opacity:1}
+
+.retour{margin-top:14px;font-size:.9rem;display:none}
+.retour.visible{display:block}
+.retour .verdict{font-weight:700;margin-bottom:6px}
+.retour.ok .verdict{color:var(--vert)}
+.retour.ko .verdict{color:var(--rouge)}
+.retour p{color:var(--gris)}
+.retour p+p{margin-top:8px}
+
+.actions{display:flex;gap:10px;margin-top:16px}
+.actions button{
+  font:inherit;font-size:.9rem;font-weight:600;
+  border-radius:10px;padding:12px 18px;cursor:pointer;border:1px solid var(--trait);
+  background:transparent;color:var(--gris);
+}
+.actions button.principal{background:var(--texte);color:var(--fond);border-color:var(--texte)}
+.actions button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.actions button[hidden]{display:none}
+
+.fin{text-align:center;padding:10px 0}
+.fin h2{font-size:1.1rem;margin-bottom:8px}
+.fin p{color:var(--gris);font-size:.92rem}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="entete">
+  <h1>Combien vaut vraiment un client ?</h1>
+  <p>Déplacez les curseurs. La valeur se recalcule à chaque mouvement.</p>
+</header>
+
+<section class="resultats" aria-live="polite">
+  <div class="ligne d3n">
+    <div class="ligne-tete"><span class="nom">D3N Industries</span><span class="valeur" id="vD3N">1 920 €</span></div>
+    <div class="piste"><div class="remplissage" id="bD3N" style="width:14%"></div></div>
+  </div>
+  <div class="ligne roure">
+    <div class="ligne-tete"><span class="nom">Atelier de Roure</span><span class="valeur" id="vROU">10 080 €</span></div>
+    <div class="piste"><div class="remplissage" id="bROU" style="width:72%"></div></div>
+  </div>
+  <p class="ecart" id="ecart"></p>
+</section>
+
+<div class="carte d3n">
+  <h2>D3N Industries</h2>
+  <p class="panier">Matériel — 12 000 € par commande</p>
+
+  <div class="champ">
+    <div class="champ-tete"><label for="mD3N">Taux de marge</label><output id="oMD3N">8 %</output></div>
+    <input type="range" id="mD3N" min="5" max="40" step="1" value="8">
+  </div>
+  <div class="champ">
+    <div class="champ-tete"><label for="fD3N">Fréquence de commande</label><output id="oFD3N">1 tous les 3 ans</output></div>
+    <input type="range" id="fD3N" min="0" max="8" step="1" value="0">
+  </div>
+  <div class="champ">
+    <div class="champ-tete"><label for="dD3N">Durée de la relation</label><output id="oDD3N">6 ans</output></div>
+    <input type="range" id="dD3N" min="1" max="15" step="1" value="6">
+  </div>
+</div>
+
+<div class="carte roure">
+  <h2>Atelier de Roure</h2>
+  <p class="panier">Consommables — 800 € par commande</p>
+
+  <div class="champ">
+    <div class="champ-tete"><label for="mROU">Taux de marge</label><output id="oMROU">35 %</output></div>
+    <input type="range" id="mROU" min="5" max="40" step="1" value="35">
+  </div>
+  <div class="champ">
+    <div class="champ-tete"><label for="fROU">Fréquence de commande</label><output id="oFROU">6 par an</output></div>
+    <input type="range" id="fROU" min="0" max="8" step="1" value="6">
+  </div>
+  <div class="champ">
+    <div class="champ-tete"><label for="dROU">Durée de la relation</label><output id="oDROU">6 ans</output></div>
+    <input type="range" id="dROU" min="1" max="15" step="1" value="6">
+  </div>
+</div>
+
+<section class="defi" id="defi">
+  <p class="defi-rang" id="rang">Défi 1 sur 3</p>
+  <p class="defi-question" id="question"></p>
+  <p class="consigne" id="consigne"></p>
+  <div class="choix" id="choix"></div>
+  <div class="retour" id="retour">
+    <p class="verdict" id="verdict"></p>
+    <div id="explication"></div>
+  </div>
+  <div class="actions">
+    <button type="button" id="reinit">Revenir aux valeurs de départ</button>
+    <button type="button" id="suivant" class="principal" hidden>Défi suivant</button>
+  </div>
+</section>
+
+<script>
+/* =========================================================================
+   DONNÉES — tout ce qui se modifie est regroupé ici.
+   ========================================================================= */
+const PANIER = { d3n: 12000, rou: 800 };
+
+// Positions du curseur de fréquence, de la plus rare à la plus fréquente.
+const FREQ = [
+  { label:"1 tous les 3 ans", parAn:1/3 },
+  { label:"1 tous les 2 ans", parAn:1/2 },
+  { label:"1 par an",         parAn:1   },
+  { label:"2 par an",         parAn:2   },
+  { label:"3 par an",         parAn:3   },
+  { label:"4 par an",         parAn:4   },
+  { label:"6 par an",         parAn:6   },
+  { label:"8 par an",         parAn:8   },
+  { label:"12 par an",        parAn:12  }
+];
+
+const DEPART = {
+  d3n: { marge:8,  freq:0, duree:6 },
+  rou: { marge:35, freq:6, duree:6 }
+};
+
+const DEFIS = [
+  {
+    question:"Ramenez la durée de relation d'Atelier de Roure à 1 an, puis augmentez-la. À partir de combien d'années dépasse-t-il D3N Industries ?",
+    consigne:"Déplacez le curseur « Durée de la relation » d'Atelier de Roure pour chercher.",
+    exigeManip:"dROU",
+    options:[
+      { texte:"Dès la première année", juste:true },
+      { texte:"À partir de 3 ans",     juste:false },
+      { texte:"À partir de 6 ans",     juste:false },
+      { texte:"Il ne le dépasse jamais", juste:false }
+    ],
+    verditJuste:"Exactement.",
+    verdictFaux:"Regardez à nouveau.",
+    explication:[
+      "Dès la première année, Atelier de Roure rapporte 1 680 € contre 320 € à D3N Industries.",
+      "Il n'y a jamais eu de bascule : le petit client était devant depuis le début. Ce que le classement par chiffre d'affaires appelait « le gros client » ne l'a jamais été en marge. La durée ne renverse pas le classement, elle creuse un écart qui existait déjà."
+    ]
+  },
+  {
+    question:"Doublez la fréquence d'Atelier de Roure (6 → 12 par an) et notez la valeur. Remettez-la à 6, puis doublez sa durée (6 → 12 ans). Que constatez-vous ?",
+    consigne:"Déplacez les curseurs d'Atelier de Roure pour comparer les deux essais.",
+    exigeManip:"fROU",
+    options:[
+      { texte:"Doubler la fréquence rapporte davantage", juste:false },
+      { texte:"Doubler la durée rapporte davantage",     juste:false },
+      { texte:"Les deux donnent exactement le même résultat", juste:true }
+    ],
+    verditJuste:"20 160 € dans les deux cas.",
+    verdictFaux:"Refaites l'essai en comparant les deux chiffres.",
+    explication:[
+      "Les trois facteurs se multiplient. Doubler l'un ou doubler l'autre revient donc strictement au même : mathématiquement, aucun n'est plus puissant.",
+      "Ce qui les distingue, c'est la marge de manœuvre réelle. Le taux de marge est plafonné par le marché et la concurrence. La fréquence dépend du besoin effectif du client, qui ne consomme pas plus qu'il ne consomme. La durée, elle, dépend surtout de la qualité de la relation — c'est le seul facteur sur lequel un commercial a une vraie prise."
+    ]
+  },
+  {
+    question:"D3N Industries n'est pas condamné. Quel changement lui permettrait de rattraper Atelier de Roure ?",
+    consigne:"Choisissez : le simulateur appliquera la modification pour que vous voyiez le résultat.",
+    options:[
+      { texte:"Multiplier sa marge par 2,5 (8 → 20 %)", juste:false, applique:{ cible:"d3n", marge:20 } },
+      { texte:"Doubler la durée de relation (6 → 12 ans)", juste:false, applique:{ cible:"d3n", duree:12 } },
+      { texte:"Passer à 2 commandes par an", juste:true, applique:{ cible:"d3n", freq:3 } }
+    ],
+    verditJuste:"Oui, la fréquence.",
+    verdictFaux:"Insuffisant.",
+    explication:[
+      "Avec une marge multipliée par 2,5, D3N atteint 4 800 €. En doublant la durée, 3 840 €. En passant à deux commandes par an, 11 520 € : il repasse devant.",
+      "Le levier n'est donc pas de mieux négocier, mais de trouver une raison de revenir — un contrat de maintenance, des consommables, un renouvellement partiel. C'est précisément ce que travaille la suite de la session."
+    ]
+  }
+];
+
+/* ========================================================================= */
+const $ = id => document.getElementById(id);
+const etat = JSON.parse(JSON.stringify(DEPART));
+let indexDefi = 0, manipule = false, repondu = false;
+
+const euros = n => Math.round(n).toLocaleString("fr-FR") + " €";
+const vav = c => PANIER[c] * (etat[c].marge/100) * FREQ[etat[c].freq].parAn * etat[c].duree;
+
+function rendre(){
+  const a = vav("d3n"), b = vav("rou");
+  const echelle = Math.max(a, b, 14000);
+  $("vD3N").textContent = euros(a);
+  $("vROU").textContent = euros(b);
+  $("bD3N").style.width = (a/echelle*100) + "%";
+  $("bROU").style.width = (b/echelle*100) + "%";
+
+  $("oMD3N").textContent = etat.d3n.marge + " %";
+  $("oMROU").textContent = etat.rou.marge + " %";
+  $("oFD3N").textContent = FREQ[etat.d3n.freq].label;
+  $("oFROU").textContent = FREQ[etat.rou.freq].label;
+  $("oDD3N").textContent = etat.d3n.duree + (etat.d3n.duree > 1 ? " ans" : " an");
+  $("oDROU").textContent = etat.rou.duree + (etat.rou.duree > 1 ? " ans" : " an");
+
+  const devant = a > b ? "D3N Industries" : "Atelier de Roure";
+  const rapport = Math.max(a,b) / Math.max(Math.min(a,b), 1);
+  $("ecart").innerHTML = a === b
+    ? "Les deux clients valent la même chose."
+    : `<b>${devant}</b> vaut ${rapport.toFixed(1).replace(".", ",")} fois plus.`;
+}
+
+function lier(idInput, cible, cle){
+  const el = $(idInput);
+  el.addEventListener("input", () => {
+    etat[cible][cle] = Number(el.value);
+    if (idInput === DEFIS[indexDefi].exigeManip) { manipule = true; afficherChoix(); }
+    rendre();
+  });
+}
+lier("mD3N","d3n","marge"); lier("fD3N","d3n","freq"); lier("dD3N","d3n","duree");
+lier("mROU","rou","marge"); lier("fROU","rou","freq"); lier("dROU","rou","duree");
+
+function synchroniserCurseurs(){
+  $("mD3N").value = etat.d3n.marge; $("fD3N").value = etat.d3n.freq; $("dD3N").value = etat.d3n.duree;
+  $("mROU").value = etat.rou.marge; $("fROU").value = etat.rou.freq; $("dROU").value = etat.rou.duree;
+}
+
+function afficherChoix(){
+  const d = DEFIS[indexDefi];
+  const zone = $("choix");
+  zone.innerHTML = "";
+  const bloque = d.exigeManip && !manipule;
+  d.options.forEach((o, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = o.texte;
+    b.disabled = bloque || repondu;
+    b.addEventListener("click", () => repondre(i));
+    zone.appendChild(b);
+  });
+  $("consigne").textContent = bloque
+    ? d.consigne
+    : (d.exigeManip ? "Vous pouvez répondre." : d.consigne);
+}
+
+function chargerDefi(){
+  const d = DEFIS[indexDefi];
+  repondu = false; manipule = false;
+  $("rang").textContent = `Défi ${indexDefi+1} sur ${DEFIS.length}`;
+  $("question").textContent = d.question;
+  $("retour").className = "retour";
+  $("suivant").hidden = true;
+  afficherChoix();
+}
+
+function repondre(i){
+  const d = DEFIS[indexDefi], o = d.options[i];
+  repondu = true;
+
+  if (o.applique){
+    const c = o.applique.cible;
+    if ("marge" in o.applique) etat[c].marge = o.applique.marge;
+    if ("freq"  in o.applique) etat[c].freq  = o.applique.freq;
+    if ("duree" in o.applique) etat[c].duree = o.applique.duree;
+    synchroniserCurseurs(); rendre();
+  }
+
+  [...$("choix").children].forEach((b, k) => {
+    b.disabled = true;
+    if (k === i) b.classList.add(o.juste ? "juste" : "faux");
+    else if (d.options[k].juste) b.classList.add("juste");
+  });
+
+  $("verdict").textContent = o.juste ? d.verditJuste : d.verdictFaux;
+  $("explication").innerHTML = d.explication.map(p => `<p>${p}</p>`).join("");
+  $("retour").className = "retour visible " + (o.juste ? "ok" : "ko");
+  $("suivant").hidden = false;
+  $("suivant").textContent = indexDefi < DEFIS.length - 1 ? "Défi suivant" : "Terminer";
+}
+
+$("suivant").addEventListener("click", () => {
+  if (indexDefi < DEFIS.length - 1){
+    indexDefi++;
+    Object.assign(etat.d3n, DEPART.d3n);
+    Object.assign(etat.rou, DEPART.rou);
+    synchroniserCurseurs(); rendre(); chargerDefi();
+    $("defi").scrollIntoView({ behavior:"smooth", block:"start" });
+  } else {
+    $("defi").innerHTML =
+      '<div class="fin"><h2>Trois facteurs, une seule vraie prise.</h2>' +
+      '<p>Marge, fréquence et durée se multiplient : aucun n’est plus puissant qu’un autre. Ce qui décide, c’est la marge de manœuvre dont vous disposez sur chacun — et celle qui dépend le plus de vous, c’est la durée de la relation.</p>' +
+      '<p style="margin-top:14px">Les curseurs restent actifs si vous voulez continuer à explorer.</p></div>';
+  }
+});
+
+$("reinit").addEventListener("click", () => {
+  Object.assign(etat.d3n, DEPART.d3n);
+  Object.assign(etat.rou, DEPART.rou);
+  synchroniserCurseurs(); rendre();
+});
+
+synchroniserCurseurs(); rendre(); chargerDefi();
+</script>
+</body>
+</html>
