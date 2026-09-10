@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La valeur à vie du client — quiz</title>
+<style>
+:root{
+  --fond:#0F1B2D;
+  --surface:#17263C;
+  --surface-2:#1D2E48;
+  --trait:#26374F;
+  --texte:#F5F1E8;
+  --gris:#8A97A8;
+  --bleu:#4A7DB5;
+  --orange:#E8703A;
+  --vert:#4CAF7D;
+  --rouge:#D2695F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--fond);
+  color:var(--texte);
+  font-family:Montserrat,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  line-height:1.45;
+  padding:20px 18px 40px;
+  max-width:560px;
+  margin:0 auto;
+  -webkit-font-smoothing:antialiased;
+}
+
+.entete{margin-bottom:20px}
+.entete h1{font-size:1.3rem;font-weight:700;letter-spacing:-.01em}
+.entete p{color:var(--gris);font-size:.9rem;margin-top:4px}
+
+.jauge{display:flex;gap:6px;margin:18px 0 22px}
+.jauge span{
+  flex:1;height:4px;border-radius:2px;background:var(--surface-2);
+  transition:background .2s;
+}
+.jauge span.faite{background:var(--vert)}
+.jauge span.ratee{background:var(--rouge)}
+.jauge span.active{background:var(--texte)}
+
+.carte{
+  background:var(--surface);
+  border:1px solid var(--trait);
+  border-radius:14px;
+  padding:20px 18px;
+}
+.rang{font-size:.78rem;color:var(--gris);margin-bottom:10px}
+.enonce{font-size:1.02rem;font-weight:600;margin-bottom:6px}
+.situation{
+  font-size:.92rem;color:var(--gris);
+  background:var(--surface-2);border-radius:10px;
+  padding:12px 14px;margin:12px 0 16px;
+}
+.situation b{color:var(--texte);font-weight:600;font-variant-numeric:tabular-nums}
+
+.choix{display:flex;flex-direction:column;gap:8px}
+.choix button{
+  font:inherit;font-size:.94rem;text-align:left;
+  background:var(--surface-2);color:var(--texte);
+  border:1px solid var(--trait);border-radius:10px;
+  padding:14px 15px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.choix button:hover:not(:disabled){border-color:var(--gris)}
+.choix button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.choix button:disabled{cursor:default;opacity:.5}
+.choix button.juste{border-color:var(--vert);background:rgba(76,175,125,.14);opacity:1}
+.choix button.faux{border-color:var(--rouge);background:rgba(210,105,95,.12);opacity:1}
+
+.retour{margin-top:16px;display:none}
+.retour.visible{display:block}
+.verdict{font-weight:700;font-size:.96rem;margin-bottom:6px}
+.retour.ok .verdict{color:var(--vert)}
+.retour.ko .verdict{color:var(--rouge)}
+.retour p{color:var(--gris);font-size:.92rem}
+.retour p+p{margin-top:8px}
+.calcul{
+  font-variant-numeric:tabular-nums;
+  color:var(--texte);font-weight:600;
+}
+
+.actions{margin-top:18px}
+.actions button{
+  font:inherit;font-size:.92rem;font-weight:600;
+  border-radius:10px;padding:13px 20px;cursor:pointer;
+  background:var(--texte);color:var(--fond);border:1px solid var(--texte);
+  width:100%;
+}
+.actions button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.actions button[hidden]{display:none}
+
+.bilan{text-align:center;padding:8px 0}
+.bilan .score{font-size:2.6rem;font-weight:700;font-variant-numeric:tabular-nums}
+.bilan .score small{font-size:1.2rem;color:var(--gris);font-weight:600}
+.bilan h2{font-size:1.05rem;margin:10px 0 10px}
+.bilan p{color:var(--gris);font-size:.94rem}
+.bilan ul{
+  text-align:left;margin:16px 0 0;padding:14px 16px;
+  background:var(--surface-2);border-radius:10px;list-style:none;
+}
+.bilan li{font-size:.9rem;color:var(--gris);padding-left:16px;position:relative}
+.bilan li+li{margin-top:8px}
+.bilan li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--orange)}
+.bilan .rejouer{
+  margin-top:18px;background:transparent;color:var(--gris);
+  border-color:var(--trait);
+}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="entete">
+  <h1>Ce que vous retenez</h1>
+  <p>Cinq questions pour clore le module.</p>
+</header>
+
+<div class="jauge" id="jauge" aria-hidden="true"></div>
+
+<section class="carte" id="carte" aria-live="polite">
+  <p class="rang" id="rang"></p>
+  <p class="enonce" id="enonce"></p>
+  <div class="situation" id="situation"></div>
+  <div class="choix" id="choix"></div>
+  <div class="retour" id="retour">
+    <p class="verdict" id="verdict"></p>
+    <div id="explication"></div>
+  </div>
+  <div class="actions"><button type="button" id="suivant" hidden></button></div>
+</section>
+
+<script>
+/* =========================================================================
+   QUESTIONS — tout se modifie ici. « situation » est facultatif.
+   ========================================================================= */
+const QUESTIONS = [
+  {
+    enonce:"Qu'avez-vous oublié dans ce calcul ?",
+    situation:"Un client commande <b>4 fois par an</b> et vous laisse <b>150 €</b> de marge à chaque commande. Vous estimez sa valeur à vie à <b>600 €</b>.",
+    options:[
+      { texte:"La marge" },
+      { texte:"La fréquence de commande" },
+      { texte:"La durée de la relation", juste:true },
+      { texte:"Rien, le calcul est juste" }
+    ],
+    verdictJuste:"Oui, la durée.",
+    verdictFaux:"Reprenez le calcul.",
+    explication:[
+      "<span class='calcul'>150 € × 4 = 600 €</span> — c'est ce que ce client rapporte <b>en une année</b>.",
+      "La valeur à vie multiplie encore par le nombre d'années de relation. Sur cinq ans, elle atteint 3 000 €. Un calcul qui s'arrête à l'année n'est pas une valeur à vie, c'est un chiffre annuel."
+    ]
+  },
+  {
+    enonce:"Lequel de ces deux clients a le plus rapporté cette année ?",
+    situation:"Le premier vous a acheté <b>15 000 €</b> à <b>10 %</b> de marge. Le second <b>5 000 €</b> à <b>35 %</b>.",
+    options:[
+      { texte:"Le premier" },
+      { texte:"Le second", juste:true },
+      { texte:"Les deux à parts égales" }
+    ],
+    verdictJuste:"Exact.",
+    verdictFaux:"Calculez les marges.",
+    explication:[
+      "<span class='calcul'>15 000 × 10 % = 1 500 €</span> contre <span class='calcul'>5 000 × 35 % = 1 750 €</span>.",
+      "Trois fois moins de chiffre d'affaires, et pourtant 250 € de marge en plus. L'écart est étroit : un taux de marge trois fois et demie supérieur compense tout juste un chiffre d'affaires trois fois moindre. C'est la marge qui reste à l'entreprise, pas le montant facturé."
+    ]
+  },
+  {
+    enonce:"Comment la valeur à vie en tient-elle compte ?",
+    situation:"Un client peu rentable vous a amené <b>trois nouveaux clients</b> par recommandation.",
+    options:[
+      { texte:"Elle l'intègre automatiquement" },
+      { texte:"Elle ne le mesure pas", juste:true },
+      { texte:"Elle l'intègre si on ajoute les trois clients à sa fréquence" }
+    ],
+    verdictJuste:"Elle ne le mesure pas.",
+    verdictFaux:"Pas tout à fait.",
+    explication:[
+      "La valeur à vie mesure ce qu'un client achète, pas ce qu'il apporte indirectement.",
+      "Un prescripteur, une référence commerciale, un retour d'expérience qui vous fait progresser : rien de cela n'entre dans le calcul. C'est un outil de comparaison, pas un jugement complet sur un client."
+    ]
+  },
+  {
+    enonce:"Sur quoi repose l'estimation de la durée de relation ?",
+    options:[
+      { texte:"Sur une donnée certaine, issue du CRM" },
+      { texte:"Sur une hypothèse", juste:true },
+      { texte:"Sur la moyenne observée dans le secteur" }
+    ],
+    verdictJuste:"Sur une hypothèse.",
+    verdictFaux:"Réfléchissez à ce qu'on peut réellement savoir.",
+    explication:[
+      "Personne ne sait combien de temps un client restera. Le CRM enregistre le passé, il ne prédit pas l'avenir.",
+      "C'est ce qui rend la valeur à vie utile pour <b>comparer</b> des clients entre eux, mais pas pour prévoir une recette. Un client peut partir l'an prochain."
+    ]
+  },
+  {
+    enonce:"Lequel choisir ?",
+    situation:"Vous disposez d'<b>une heure par semaine</b> à consacrer à un seul client de votre portefeuille.",
+    options:[
+      { texte:"Celui qui a le plus gros chiffre d'affaires" },
+      { texte:"Celui qui a la plus forte valeur à vie" },
+      { texte:"Celui dont la valeur à vie peut le plus augmenter", juste:true }
+    ],
+    verdictJuste:"C'est là que l'effort porte.",
+    verdictFaux:"Pensez à ce que votre heure peut changer.",
+    explication:[
+      "La valeur à vie mesure ce qui existe déjà. L'effort commercial, lui, se place là où il peut changer quelque chose.",
+      "Un compte à forte valeur mais déjà solidement fidélisé profite peu d'une heure de plus. Un compte fragile, ou un compte dont la fréquence peut encore monter, en profite beaucoup."
+    ]
+  }
+];
+
+const RETENIR = [
+  "La valeur à vie multiplie la marge, la fréquence et la durée. Oublier un facteur, c'est calculer autre chose.",
+  "Les trois facteurs se multiplient : aucun n'est plus puissant. Ce qui les distingue, c'est votre marge de manœuvre sur chacun.",
+  "C'est un outil de comparaison entre clients, pas une prévision de recette ni un jugement complet.",
+  "L'effort se place là où la valeur peut encore augmenter, pas là où elle est déjà haute."
+];
+
+/* ========================================================================= */
+const $ = id => document.getElementById(id);
+let index = 0, justes = 0, repondu = false;
+
+function construireJauge(){
+  $("jauge").innerHTML = QUESTIONS.map(() => "<span></span>").join("");
+}
+function majJauge(){
+  [...$("jauge").children].forEach((s, i) => {
+    s.className = i < index ? (s.dataset.ok === "1" ? "faite" : "ratee") : (i === index ? "active" : "");
+  });
+}
+
+function charger(){
+  const q = QUESTIONS[index];
+  repondu = false;
+  $("rang").textContent = `Question ${index + 1} sur ${QUESTIONS.length}`;
+  $("enonce").textContent = q.enonce;
+  const sit = $("situation");
+  if (q.situation){ sit.innerHTML = q.situation; sit.style.display = "block"; }
+  else sit.style.display = "none";
+
+  const zone = $("choix");
+  zone.innerHTML = "";
+  q.options.forEach((o, i) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = o.texte;
+    b.addEventListener("click", () => repondre(i));
+    zone.appendChild(b);
+  });
+
+  $("retour").className = "retour";
+  $("suivant").hidden = true;
+  majJauge();
+}
+
+function repondre(i){
+  if (repondu) return;
+  repondu = true;
+  const q = QUESTIONS[index], o = q.options[i];
+  if (o.juste) justes++;
+  $("jauge").children[index].dataset.ok = o.juste ? "1" : "0";
+
+  [...$("choix").children].forEach((b, k) => {
+    b.disabled = true;
+    if (k === i) b.classList.add(o.juste ? "juste" : "faux");
+    else if (q.options[k].juste) b.classList.add("juste");
+  });
+
+  $("verdict").textContent = o.juste ? q.verdictJuste : q.verdictFaux;
+  $("explication").innerHTML = q.explication.map(p => `<p>${p}</p>`).join("");
+  $("retour").className = "retour visible " + (o.juste ? "ok" : "ko");
+  $("suivant").hidden = false;
+  $("suivant").textContent = index < QUESTIONS.length - 1 ? "Question suivante" : "Voir le bilan";
+}
+
+$("suivant").addEventListener("click", () => {
+  if (index < QUESTIONS.length - 1){ index++; charger(); }
+  else bilan();
+});
+
+function bilan(){
+  index = QUESTIONS.length;
+  majJauge();
+  let titre, mot;
+  if (justes === 5){ titre = "Rien ne vous a échappé."; mot = "Vous savez calculer une valeur à vie et vous en connaissez les limites. C'est exactement ce qu'il faut pour la suite."; }
+  else if (justes >= 3){ titre = "L'essentiel est acquis."; mot = "Relisez les explications des questions manquées avant de passer à l'application sur votre portefeuille."; }
+  else { titre = "Reprenez le module."; mot = "Les trois facteurs et leurs limites méritent un second passage. L'activité à curseurs reste accessible."; }
+
+  $("carte").innerHTML =
+    '<div class="bilan">' +
+    `<p class="score">${justes}<small> / ${QUESTIONS.length}</small></p>` +
+    `<h2>${titre}</h2><p>${mot}</p>` +
+    '<ul>' + RETENIR.map(r => `<li>${r}</li>`).join("") + '</ul>' +
+    '<div class="actions"><button type="button" class="rejouer" id="rejouer">Refaire le quiz</button></div>' +
+    '</div>';
+  $("rejouer").addEventListener("click", () => {
+    index = 0; justes = 0;
+    $("carte").innerHTML = document.getElementById("gabarit").innerHTML;
+    brancher(); construireJauge(); charger();
+  });
+}
+
+function brancher(){
+  $("suivant").addEventListener("click", () => {
+    if (index < QUESTIONS.length - 1){ index++; charger(); }
+    else bilan();
+  });
+}
+
+construireJauge();
+charger();
+</script>
+
+<template id="gabarit">
+  <p class="rang" id="rang"></p>
+  <p class="enonce" id="enonce"></p>
+  <div class="situation" id="situation"></div>
+  <div class="choix" id="choix"></div>
+  <div class="retour" id="retour">
+    <p class="verdict" id="verdict"></p>
+    <div id="explication"></div>
+  </div>
+  <div class="actions"><button type="button" id="suivant" hidden></button></div>
+</template>
+
+</body>
+</html>
