@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>La valeur à vie du client</title>
+<style>
+:root{
+  --fond:#0F1B2D; --surface:#17263C; --surface-2:#1D2E48; --trait:#26374F;
+  --texte:#F5F1E8; --gris:#8A97A8; --bleu:#4A7DB5; --orange:#E8703A;
+  --vert:#4CAF7D; --rouge:#D2695F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  background:var(--fond); color:var(--texte);
+  font-family:Montserrat,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  line-height:1.45; padding:0 18px 48px; max-width:560px; margin:0 auto;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ------------------------------------------------------------- en-tête */
+.chapeau{padding:26px 0 4px}
+.marque{font-size:.72rem;font-weight:700;color:var(--orange);letter-spacing:.14em;margin-bottom:10px}
+h1{font-size:1.6rem;font-weight:700;letter-spacing:-.01em;line-height:1.2}
+.accroche{color:var(--gris);font-size:.95rem;margin-top:10px}
+.duree{
+  display:inline-block;margin-top:14px;padding:5px 12px;border-radius:20px;
+  background:var(--surface-2);color:var(--gris);font-size:.78rem;font-weight:600;
+}
+
+.objectifs{
+  background:var(--surface);border-radius:14px;padding:18px 16px;margin-top:22px;
+  border-left:4px solid var(--orange);
+}
+.objectifs h2{font-size:.78rem;font-weight:700;color:var(--orange);letter-spacing:.1em;margin-bottom:12px}
+.objectifs ul{list-style:none}
+.objectifs li{font-size:.94rem;padding-left:18px;position:relative}
+.objectifs li+li{margin-top:10px}
+.objectifs li::before{
+  content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;
+  border-radius:50%;background:var(--orange);
+}
+.objectifs b{font-weight:700}
+
+/* --------------------------------------------------------- progression */
+.progression{
+  position:sticky;top:0;z-index:20;background:var(--fond);
+  padding:14px 0 12px;margin-top:24px;border-bottom:1px solid var(--trait);
+  display:flex;gap:8px;
+}
+.progression a{
+  flex:1;text-decoration:none;text-align:center;
+  font-size:.72rem;font-weight:600;color:var(--gris);
+  padding-top:9px;border-top:3px solid var(--surface-2);
+  transition:color .2s,border-color .2s;
+}
+.progression a.active{color:var(--texte);border-top-color:var(--orange)}
+.progression a.verrou{opacity:.45;pointer-events:none}
+
+/* -------------------------------------------------------------- étapes */
+.etape{padding-top:30px;scroll-margin-top:64px}
+.etape-rang{font-size:.72rem;font-weight:700;color:var(--orange);letter-spacing:.12em;margin-bottom:6px}
+.etape h2{font-size:1.22rem;font-weight:700;margin-bottom:12px}
+
+.consigne{
+  background:var(--surface-2);border-radius:12px;padding:14px 15px;margin-bottom:16px;
+  font-size:.9rem;color:var(--gris);
+}
+.consigne b{color:var(--texte);font-weight:600}
+.consigne p+p{margin-top:10px}
+.consigne .sous{font-size:.76rem;font-weight:700;color:var(--texte);letter-spacing:.06em;display:block;margin-bottom:4px}
+
+video{width:100%;border-radius:12px;background:#000;display:block}
+
+/* ----------------------------------------------------------- résultats */
+.resultats{
+  position:sticky;top:56px;z-index:10;background:var(--fond);
+  padding:12px 0 10px;border-bottom:1px solid var(--trait);margin-bottom:18px;
+}
+.ligne{margin-bottom:12px}
+.ligne:last-of-type{margin-bottom:0}
+.ligne-tete{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.nom{font-size:.85rem;font-weight:600}
+.valeur{font-size:1.4rem;font-weight:700;font-variant-numeric:tabular-nums}
+.piste{height:14px;background:var(--surface-2);border-radius:7px;overflow:hidden}
+.remplissage{height:100%;border-radius:7px;transition:width .18s ease-out}
+.d3n .nom,.d3n .valeur{color:var(--bleu)} .d3n .remplissage{background:var(--bleu)}
+.roure .nom,.roure .valeur{color:var(--orange)} .roure .remplissage{background:var(--orange)}
+.ecart{text-align:center;font-size:.8rem;color:var(--gris);margin-top:10px}
+.ecart b{color:var(--texte);font-weight:600}
+
+/* -------------------------------------------------------------- cartes */
+.carte{background:var(--surface);border-radius:14px;padding:16px 16px 8px;margin-bottom:14px;border-left:4px solid var(--trait)}
+.carte.d3n{border-left-color:var(--bleu)}
+.carte.roure{border-left-color:var(--orange)}
+.carte h3{font-size:.98rem;font-weight:700;margin-bottom:2px}
+.carte .panier{font-size:.78rem;color:var(--gris);margin-bottom:13px}
+.champ{margin-bottom:15px}
+.champ-tete{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.champ-tete label{font-size:.8rem;color:var(--gris)}
+.champ-tete output{font-size:.9rem;font-weight:600;font-variant-numeric:tabular-nums}
+
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:34px;background:transparent;cursor:pointer;display:block}
+input[type=range]::-webkit-slider-runnable-track{height:6px;background:var(--surface-2);border-radius:3px}
+input[type=range]::-moz-range-track{height:6px;background:var(--surface-2);border-radius:3px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--texte);border:none;margin-top:-12px;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--texte);border:none;box-shadow:0 1px 4px rgba(0,0,0,.45)}
+input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--vert)}
+input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 4px var(--vert)}
+
+/* --------------------------------------------------------- défis/quiz */
+.bloc{background:var(--surface);border:1px solid var(--trait);border-radius:14px;padding:18px 16px;margin-top:20px}
+.rang{font-size:.76rem;color:var(--gris);margin-bottom:8px}
+.question{font-size:.98rem;font-weight:600;margin-bottom:14px}
+.situation{font-size:.9rem;color:var(--gris);background:var(--surface-2);border-radius:10px;padding:12px 14px;margin:0 0 15px}
+.situation b{color:var(--texte);font-weight:600;font-variant-numeric:tabular-nums}
+.instruction{font-size:.85rem;color:var(--gris);background:var(--surface-2);border-radius:10px;padding:11px 13px;margin-bottom:14px}
+.instruction b{color:var(--orange);font-weight:700}
+
+.choix{display:flex;flex-direction:column;gap:8px}
+.choix button{
+  font:inherit;font-size:.92rem;text-align:left;background:var(--surface-2);color:var(--texte);
+  border:1px solid var(--trait);border-radius:10px;padding:13px 14px;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.choix button:hover:not(:disabled){border-color:var(--gris)}
+.choix button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.choix button:disabled{cursor:default;opacity:.5}
+.choix button.juste{border-color:var(--vert);background:rgba(76,175,125,.14);opacity:1}
+.choix button.faux{border-color:var(--rouge);background:rgba(210,105,95,.12);opacity:1}
+
+.retour{margin-top:15px;display:none}
+.retour.visible{display:block}
+.verdict{font-weight:700;font-size:.95rem;margin-bottom:6px}
+.retour.ok .verdict{color:var(--vert)}
+.retour.ko .verdict{color:var(--rouge)}
+.retour p{color:var(--gris);font-size:.9rem}
+.retour p+p{margin-top:8px}
+.calcul{font-variant-numeric:tabular-nums;color:var(--texte);font-weight:600}
+
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.actions button{font:inherit;font-size:.88rem;font-weight:600;border-radius:10px;padding:12px 16px;cursor:pointer;border:1px solid var(--trait);background:transparent;color:var(--gris);flex:1;min-width:130px}
+.actions button.principal{background:var(--texte);color:var(--fond);border-color:var(--texte)}
+.actions button.souligne{border-color:var(--orange);color:var(--orange);border-width:2px;font-weight:700}
+.actions button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.actions button[hidden]{display:none}
+
+.jauge{display:flex;gap:6px;margin-bottom:16px}
+.jauge span{flex:1;height:4px;border-radius:2px;background:var(--surface-2)}
+.jauge span.faite{background:var(--vert)}
+.jauge span.ratee{background:var(--rouge)}
+.jauge span.active{background:var(--texte)}
+
+.bilan{text-align:center;padding:6px 0}
+.bilan .score{font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums}
+.bilan .score small{font-size:1.1rem;color:var(--gris);font-weight:600}
+.bilan h3{font-size:1.02rem;margin:8px 0 8px}
+.bilan p{color:var(--gris);font-size:.92rem}
+
+/* ------------------------------------------------------------ clôture */
+.etape[hidden],#simulateur[hidden],.suite[hidden]{display:none}
+.suite{margin-top:22px}
+.suite button{
+  font:inherit;font-size:.95rem;font-weight:700;width:100%;
+  background:var(--texte);color:var(--fond);border:none;border-radius:12px;
+  padding:16px 18px;cursor:pointer;
+}
+.suite button:hover{background:#FFFFFF}
+.suite button:focus-visible{outline:3px solid var(--orange);outline-offset:3px}
+.cloture[hidden]{display:none}
+.cloture{background:var(--surface);border-radius:14px;padding:20px 17px;margin-top:20px;border-left:4px solid var(--vert)}
+.cloture h3{font-size:1.05rem;font-weight:700;margin-bottom:12px}
+.cloture ul{list-style:none;margin-bottom:16px}
+.cloture li{font-size:.92rem;color:var(--gris);padding-left:18px;position:relative}
+.cloture li+li{margin-top:9px}
+.cloture li::before{content:"";position:absolute;left:0;top:.55em;width:7px;height:7px;border-radius:50%;background:var(--vert)}
+.cloture .suite{font-size:.94rem;border-top:1px solid var(--trait);padding-top:15px}
+.cloture .suite b{color:var(--texte);font-weight:700}
+
+/* -------------------------------------------------------- satisfaction */
+.satis[hidden]{display:none}
+.satis{margin-top:22px}
+.satis h3{font-size:1rem;font-weight:700;margin-bottom:4px}
+.satis .intro{font-size:.85rem;color:var(--gris);margin-bottom:16px}
+.sq{margin-bottom:18px}
+.sq p{font-size:.92rem;margin-bottom:9px}
+.echelle{display:flex;gap:6px}
+.echelle button{
+  font:inherit;font-size:.74rem;flex:1;padding:11px 4px;border-radius:9px;cursor:pointer;
+  background:var(--surface-2);color:var(--gris);border:1px solid var(--trait);
+}
+.echelle button:hover:not(:disabled){border-color:var(--gris)}
+.echelle button:focus-visible{outline:2px solid var(--vert);outline-offset:2px}
+.echelle button.choisi{background:var(--orange);color:var(--fond);border-color:var(--orange);font-weight:700}
+.echelle button:disabled{cursor:default}
+.merci{display:none;font-size:.9rem;color:var(--vert);font-weight:600;margin-top:6px}
+.merci.visible{display:block}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<!-- ===================== CHAPEAU ===================== -->
+<header class="chapeau">
+  <p class="marque">COMMERCI'ALLURE ACADEMY</p>
+  <h1>La valeur à vie du client</h1>
+  <p class="accroche">Vous connaissez le chiffre d'affaires de vos clients. Mais savez-vous ce qu'ils rapportent vraiment ?</p>
+  <span class="duree">8 minutes</span>
+
+  <div class="objectifs">
+    <h2>CE QUE VOUS SAUREZ FAIRE</h2>
+    <ul>
+      <li><b>Calculer</b> ce qu'un client rapporte sur toute la durée de la relation, à partir de sa marge, de sa fréquence de commande et de son ancienneté.</li>
+      <li><b>Comparer</b> deux clients sur leur valeur à vie et désigner celui qui mérite le plus d'effort commercial.</li>
+    </ul>
+  </div>
+</header>
+
+<!-- ===================== PROGRESSION ===================== -->
+<nav class="progression" id="progression">
+  <a href="#etape1" data-cible="etape1">1 · Regarder</a>
+  <a href="#etape2" data-cible="etape2">2 · Manipuler</a>
+  <a href="#etape3" data-cible="etape3">3 · Vérifier</a>
+</nav>
+
+<!-- ===================== ÉTAPE 1 — VIDÉO ===================== -->
+<section class="etape" id="etape1">
+  <p class="etape-rang">ÉTAPE 1</p>
+  <h2>Regarder</h2>
+  <div class="consigne"><p>Appuyez sur play pour découvrir la vidéo.</p></div>
+  <video controls preload="metadata" playsinline>
+    <source src="valeur-a-vie.mp4" type="video/mp4">
+    Votre navigateur ne peut pas lire cette vidéo.
+  </video>
+  <div class="suite"><button type="button" id="bActivite">Passons à l'activité</button></div>
+</section>
+
+<!-- ===================== ÉTAPE 2 — ACTIVITÉ ===================== -->
+<section class="etape" id="etape2" hidden>
+  <p class="etape-rang">ÉTAPE 2</p>
+  <h2>Manipuler</h2>
+
+  <div class="consigne">
+    <p><span class="sous">CE QUE VOUS AVEZ SOUS LES YEUX</span>
+    Vous allez travailler sur deux clients de la même entreprise. <b>D3N Industries</b> achète du matériel : 12 000 € par commande, mais rarement. <b>Atelier de Roure</b> achète des consommables : 800 € par commande, mais souvent.<br>
+    Deux barres affichent ce que chaque client rapporte sur toute la durée de la relation. Elles se recalculent dès que vous déplacez un curseur.</p>
+
+    <p><span class="sous">LES CURSEURS</span>
+    Chaque client a trois curseurs : taux de marge, fréquence de commande, durée de la relation. Les curseurs d'un client n'agissent que sur lui : vous pouvez modifier l'un sans toucher à l'autre.<br>
+    Le bouton <b>Revenir aux valeurs de départ</b> remet tout en place à tout moment.</p>
+
+    <p><span class="sous">LES DÉFIS</span>
+    Trois défis vous attendent, l'un après l'autre. Pour chacun : <b>manipulez d'abord, répondez ensuite</b>. Les réponses ne sont proposées qu'une fois que vous avez cherché.</p>
+
+    <p><span class="sous">POUR DÉMARRER</span>
+    Commencez par le défi 1. Suivez l'instruction affichée, le bouton de réponse se débloquera ensuite.</p>
+  </div>
+
+  <div class="suite"><button type="button" id="bSimulateur">Commençons</button></div>
+
+  <div id="simulateur" hidden>
+
+  <div class="resultats" aria-live="polite">
+    <div class="ligne d3n">
+      <div class="ligne-tete"><span class="nom">D3N Industries</span><span class="valeur" id="vD3N">1 920 €</span></div>
+      <div class="piste"><div class="remplissage" id="bD3N" style="width:14%"></div></div>
+    </div>
+    <div class="ligne roure">
+      <div class="ligne-tete"><span class="nom">Atelier de Roure</span><span class="valeur" id="vROU">10 080 €</span></div>
+      <div class="piste"><div class="remplissage" id="bROU" style="width:72%"></div></div>
+    </div>
+    <p class="ecart" id="ecart"></p>
+  </div>
+
+  <div class="carte d3n">
+    <h3>D3N Industries</h3>
+    <p class="panier">Matériel — 12 000 € par commande</p>
+    <div class="champ">
+      <div class="champ-tete"><label for="mD3N">Taux de marge</label><output id="oMD3N">8 %</output></div>
+      <input type="range" id="mD3N" min="5" max="40" step="1" value="8">
+    </div>
+    <div class="champ">
+      <div class="champ-tete"><label for="fD3N">Fréquence de commande</label><output id="oFD3N">1 tous les 3 ans</output></div>
+      <input type="range" id="fD3N" min="0" max="8" step="1" value="0">
+    </div>
+    <div class="champ">
+      <div class="champ-tete"><label for="dD3N">Durée de la relation</label><output id="oDD3N">6 ans</output></div>
+      <input type="range" id="dD3N" min="1" max="15" step="1" value="6">
+    </div>
+  </div>
+
+  <div class="carte roure">
+    <h3>Atelier de Roure</h3>
+    <p class="panier">Consommables — 800 € par commande</p>
+    <div class="champ">
+      <div class="champ-tete"><label for="mROU">Taux de marge</label><output id="oMROU">35 %</output></div>
+      <input type="range" id="mROU" min="5" max="40" step="1" value="35">
+    </div>
+    <div class="champ">
+      <div class="champ-tete"><label for="fROU">Fréquence de commande</label><output id="oFROU">6 par an</output></div>
+      <input type="range" id="fROU" min="0" max="8" step="1" value="6">
+    </div>
+    <div class="champ">
+      <div class="champ-tete"><label for="dROU">Durée de la relation</label><output id="oDROU">6 ans</output></div>
+      <input type="range" id="dROU" min="1" max="15" step="1" value="6">
+    </div>
+  </div>
+
+  <div class="bloc" id="defi">
+    <p class="rang" id="rang">Défi 1 sur 3</p>
+    <p class="question" id="dQuestion"></p>
+    <p class="instruction" id="dInstruction"></p>
+    <div class="choix" id="dChoix"></div>
+    <div class="retour" id="dRetour">
+      <p class="verdict" id="dVerdict"></p>
+      <div id="dExplication"></div>
+    </div>
+    <div class="actions">
+      <button type="button" id="reinit">Revenir aux valeurs de départ</button>
+      <button type="button" id="dSuivant" class="principal" hidden></button>
+    </div>
+  </div>
+
+  <div class="suite"><button type="button" id="bQuiz">Allons au quiz</button></div>
+  </div>
+</section>
+
+<!-- ===================== ÉTAPE 3 — QUIZ ===================== -->
+<section class="etape" id="etape3" hidden>
+  <p class="etape-rang">ÉTAPE 3</p>
+  <h2>Vérifier</h2>
+  <div class="consigne"><p>Cinq questions pour vérifier ce que vous retenez. Vous pouvez les refaire autant de fois que vous voulez.</p></div>
+
+  <div class="jauge" id="jauge" aria-hidden="true"></div>
+
+  <div class="bloc" id="quiz" aria-live="polite">
+    <p class="rang" id="qRang"></p>
+    <p class="question" id="qEnonce"></p>
+    <div class="situation" id="qSituation"></div>
+    <div class="choix" id="qChoix"></div>
+    <div class="retour" id="qRetour">
+      <p class="verdict" id="qVerdict"></p>
+      <div id="qExplication"></div>
+    </div>
+    <div class="actions"><button type="button" id="qSuivant" class="principal" hidden></button></div>
+  </div>
+</section>
+
+<!-- ===================== CLÔTURE ===================== -->
+<section class="cloture" id="cloture" hidden>
+  <h3>Ce que vous venez d'apprendre</h3>
+  <ul>
+    <li>La valeur à vie multiplie la marge, la fréquence et la durée. Oublier un facteur, c'est calculer autre chose.</li>
+    <li>Les trois facteurs se multiplient : aucun n'est plus puissant. Ce qui les distingue, c'est votre marge de manœuvre sur chacun.</li>
+    <li>C'est un outil de comparaison entre clients, pas une prévision de recette ni un jugement complet.</li>
+    <li>L'effort se place là où la valeur peut encore augmenter, pas là où elle est déjà haute.</li>
+  </ul>
+  <p class="suite"><b>À vous maintenant.</b> Reprenez le portefeuille de votre entreprise support et calculez la valeur à vie de chaque compte. Vous verrez que le classement ne ressemble pas à celui du chiffre d'affaires — et c'est ce classement-là qui décidera de vos actions de fidélisation.</p>
+  <div class="suite"><button type="button" id="bAvis">Donner mon avis sur le module</button></div>
+</section>
+
+<!-- ===================== SATISFACTION ===================== -->
+<section class="satis" id="satis" hidden>
+  <h3>Votre avis sur ce module</h3>
+  <p class="intro">Deux questions, dix secondes.</p>
+
+  <div class="sq" data-q="1">
+    <p>Le format — vidéo, manipulation, quiz — m'a permis de comprendre la notion.</p>
+    <div class="echelle"></div>
+  </div>
+  <div class="sq" data-q="2">
+    <p>La durée et le rythme me convenaient.</p>
+    <div class="echelle"></div>
+  </div>
+  <p class="merci" id="merci">Merci, c'est noté.</p>
+</section>
+
+<script>
+/* ===================== DONNÉES — ACTIVITÉ ===================== */
+const PANIER = { d3n: 12000, rou: 800 };
+const FREQ = [
+  { label:"1 tous les 3 ans", parAn:1/3 },
+  { label:"1 tous les 2 ans", parAn:1/2 },
+  { label:"1 par an",         parAn:1   },
+  { label:"2 par an",         parAn:2   },
+  { label:"3 par an",         parAn:3   },
+  { label:"4 par an",         parAn:4   },
+  { label:"6 par an",         parAn:6   },
+  { label:"8 par an",         parAn:8   },
+  { label:"12 par an",        parAn:12  }
+];
+const DEPART = { d3n:{marge:8,freq:0,duree:6}, rou:{marge:35,freq:6,duree:6} };
+
+const DEFIS = [
+  {
+    question:"Ramenez la durée de relation d'Atelier de Roure à 1 an, puis augmentez-la. À partir de combien d'années dépasse-t-il D3N Industries ?",
+    instruction:"Déplacez le curseur <b>Durée de la relation</b> d'Atelier de Roure pour chercher.",
+    exigeManip:"dROU",
+    souligneReinit:false,
+    options:[
+      { texte:"Dès la première année", juste:true },
+      { texte:"À partir de 3 ans" },
+      { texte:"À partir de 6 ans" },
+      { texte:"Il ne le dépasse jamais" }
+    ],
+    verdictJuste:"Exactement.",
+    verdictFaux:"Regardez à nouveau.",
+    explication:[
+      "Dès la première année, Atelier de Roure rapporte 1 680 € contre 320 € à D3N Industries.",
+      "Il n'y a jamais eu de bascule : le petit client était devant depuis le début. Ce que le classement par chiffre d'affaires appelait « le gros client » ne l'a jamais été en marge. La durée ne renverse pas le classement, elle creuse un écart qui existait déjà."
+    ]
+  },
+  {
+    question:"Doublez la fréquence d'Atelier de Roure, puis sa durée. Que constatez-vous ?",
+    instruction:"Doublez la fréquence (6 → 12 par an), notez la valeur. <b>Remettez-la à 6</b>, puis doublez la durée (6 → 12 ans). Comparez les deux chiffres.",
+    exigeManip:"fROU",
+    souligneReinit:true,
+    options:[
+      { texte:"Doubler la fréquence rapporte davantage" },
+      { texte:"Doubler la durée rapporte davantage" },
+      { texte:"Les deux donnent exactement le même résultat", juste:true }
+    ],
+    verdictJuste:"20 160 € dans les deux cas.",
+    verdictFaux:"Refaites l'essai en comparant les deux chiffres.",
+    explication:[
+      "Les trois facteurs se multiplient. Doubler l'un ou doubler l'autre revient donc strictement au même : mathématiquement, aucun n'est plus puissant.",
+      "Ce qui les distingue, c'est la marge de manœuvre réelle. Le taux de marge est plafonné par le marché. La fréquence dépend du besoin effectif du client. La durée dépend surtout de la qualité de la relation — c'est le seul facteur sur lequel un commercial a une vraie prise."
+    ]
+  },
+  {
+    question:"D3N Industries n'est pas condamné. Quel changement lui permettrait de rattraper Atelier de Roure ?",
+    instruction:"Vous pouvez tester chaque option aux curseurs. <b>Revenez aux valeurs de départ entre chaque essai</b>, sinon les effets se cumulent et les chiffres n'ont plus de sens.",
+    souligneReinit:true,
+    options:[
+      { texte:"Multiplier sa marge par 2,5 (8 → 20 %)", applique:{cible:"d3n",marge:20} },
+      { texte:"Doubler la durée de relation (6 → 12 ans)", applique:{cible:"d3n",duree:12} },
+      { texte:"Passer à 2 commandes par an", juste:true, applique:{cible:"d3n",freq:3} }
+    ],
+    verdictJuste:"Oui, la fréquence.",
+    verdictFaux:"Insuffisant.",
+    explication:[
+      "Avec une marge multipliée par 2,5, D3N atteint 4 800 €. En doublant la durée, 3 840 €. En passant à deux commandes par an, 11 520 € : il repasse devant.",
+      "Le levier n'est donc pas de mieux négocier, mais de trouver une raison de revenir — un contrat de maintenance, des consommables, un renouvellement partiel."
+    ]
+  }
+];
+
+/* ===================== DONNÉES — QUIZ ===================== */
+const QUESTIONS = [
+  {
+    enonce:"Qu'avez-vous oublié dans ce calcul ?",
+    situation:"Un client commande <b>4 fois par an</b> et vous laisse <b>150 €</b> de marge à chaque commande. Vous estimez sa valeur à vie à <b>600 €</b>.",
+    options:[{texte:"La marge"},{texte:"La fréquence de commande"},{texte:"La durée de la relation",juste:true},{texte:"Rien, le calcul est juste"}],
+    verdictJuste:"Oui, la durée.", verdictFaux:"Reprenez le calcul.",
+    explication:["<span class='calcul'>150 € × 4 = 600 €</span> — c'est ce que ce client rapporte <b>en une année</b>.",
+      "La valeur à vie multiplie encore par le nombre d'années de relation. Sur cinq ans, elle atteint 3 000 €."]
+  },
+  {
+    enonce:"Lequel de ces deux clients a le plus rapporté cette année ?",
+    situation:"Le premier vous a acheté <b>15 000 €</b> à <b>10 %</b> de marge. Le second <b>5 000 €</b> à <b>35 %</b>.",
+    options:[{texte:"Le premier"},{texte:"Le second",juste:true},{texte:"Les deux à parts égales"}],
+    verdictJuste:"Exact.", verdictFaux:"Calculez les marges.",
+    explication:["<span class='calcul'>15 000 × 10 % = 1 500 €</span> contre <span class='calcul'>5 000 × 35 % = 1 750 €</span>.",
+      "Trois fois moins de chiffre d'affaires, et pourtant 250 € de marge en plus. C'est la marge qui reste à l'entreprise, pas le montant facturé."]
+  },
+  {
+    enonce:"Comment la valeur à vie en tient-elle compte ?",
+    situation:"Un client peu rentable vous a amené <b>trois nouveaux clients</b> par recommandation.",
+    options:[{texte:"Elle l'intègre automatiquement"},{texte:"Elle ne le mesure pas",juste:true},{texte:"Elle l'intègre si on ajoute les trois clients à sa fréquence"}],
+    verdictJuste:"Elle ne le mesure pas.", verdictFaux:"Pas tout à fait.",
+    explication:["La valeur à vie mesure ce qu'un client achète, pas ce qu'il apporte indirectement.",
+      "Un prescripteur, une référence commerciale, un retour d'expérience utile : rien de cela n'entre dans le calcul."]
+  },
+  {
+    enonce:"Sur quoi repose l'estimation de la durée de relation ?",
+    options:[{texte:"Sur une donnée certaine, issue du CRM"},{texte:"Sur une hypothèse",juste:true},{texte:"Sur la moyenne observée dans le secteur"}],
+    verdictJuste:"Sur une hypothèse.", verdictFaux:"Réfléchissez à ce qu'on peut réellement savoir.",
+    explication:["Personne ne sait combien de temps un client restera. Le CRM enregistre le passé, il ne prédit pas l'avenir.",
+      "C'est ce qui rend la valeur à vie utile pour <b>comparer</b> des clients, mais pas pour prévoir une recette."]
+  },
+  {
+    enonce:"Lequel choisir ?",
+    situation:"Vous disposez d'<b>une heure par semaine</b> à consacrer à un seul client de votre portefeuille.",
+    options:[{texte:"Celui qui a le plus gros chiffre d'affaires"},{texte:"Celui qui a la plus forte valeur à vie"},{texte:"Celui dont la valeur à vie peut le plus augmenter",juste:true}],
+    verdictJuste:"C'est là que l'effort porte.", verdictFaux:"Pensez à ce que votre heure peut changer.",
+    explication:["La valeur à vie mesure ce qui existe déjà. L'effort commercial se place là où il peut changer quelque chose.",
+      "Un compte à forte valeur mais déjà solidement fidélisé profite peu d'une heure de plus."]
+  }
+];
+
+/* ===================== RÉVÉLATION PROGRESSIVE ===================== */
+const $ = id => document.getElementById(id);
+
+function reveler(idCible, idBouton, idAncre){
+  $(idCible).hidden = false;
+  if (idBouton) $(idBouton).closest(".suite").hidden = true;
+  requestAnimationFrame(() => {
+    $(idAncre || idCible).scrollIntoView({ behavior:"smooth", block:"start" });
+    majProgression();
+  });
+}
+
+/* ===================== ACTIVITÉ ===================== */
+const etat = JSON.parse(JSON.stringify(DEPART));
+let iDefi = 0, manipule = false, dRepondu = false;
+
+const euros = n => Math.round(n).toLocaleString("fr-FR") + " €";
+const vav = c => PANIER[c] * (etat[c].marge/100) * FREQ[etat[c].freq].parAn * etat[c].duree;
+
+function rendre(){
+  const a = vav("d3n"), b = vav("rou"), ech = Math.max(a, b, 14000);
+  $("vD3N").textContent = euros(a); $("vROU").textContent = euros(b);
+  $("bD3N").style.width = (a/ech*100)+"%"; $("bROU").style.width = (b/ech*100)+"%";
+  $("oMD3N").textContent = etat.d3n.marge+" %"; $("oMROU").textContent = etat.rou.marge+" %";
+  $("oFD3N").textContent = FREQ[etat.d3n.freq].label; $("oFROU").textContent = FREQ[etat.rou.freq].label;
+  $("oDD3N").textContent = etat.d3n.duree+(etat.d3n.duree>1?" ans":" an");
+  $("oDROU").textContent = etat.rou.duree+(etat.rou.duree>1?" ans":" an");
+  const devant = a > b ? "D3N Industries" : "Atelier de Roure";
+  const rap = Math.max(a,b)/Math.max(Math.min(a,b),1);
+  $("ecart").innerHTML = a === b ? "Les deux clients valent la même chose."
+    : `<b>${devant}</b> vaut ${rap.toFixed(1).replace(".",",")} fois plus.`;
+}
+
+function lier(id, cible, cle){
+  const el = $(id);
+  el.addEventListener("input", () => {
+    etat[cible][cle] = Number(el.value);
+    if (id === DEFIS[iDefi].exigeManip){ manipule = true; afficherChoixDefi(); }
+    rendre();
+  });
+}
+["mD3N|d3n|marge","fD3N|d3n|freq","dD3N|d3n|duree","mROU|rou|marge","fROU|rou|freq","dROU|rou|duree"]
+  .forEach(s => { const [a,b,c] = s.split("|"); lier(a,b,c); });
+
+function syncCurseurs(){
+  $("mD3N").value = etat.d3n.marge; $("fD3N").value = etat.d3n.freq; $("dD3N").value = etat.d3n.duree;
+  $("mROU").value = etat.rou.marge; $("fROU").value = etat.rou.freq; $("dROU").value = etat.rou.duree;
+}
+
+function afficherChoixDefi(){
+  const d = DEFIS[iDefi], zone = $("dChoix"), bloque = d.exigeManip && !manipule;
+  zone.innerHTML = "";
+  d.options.forEach((o, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = o.texte; b.disabled = bloque || dRepondu;
+    b.addEventListener("click", () => repondreDefi(i));
+    zone.appendChild(b);
+  });
+}
+
+function chargerDefi(){
+  const d = DEFIS[iDefi];
+  dRepondu = false; manipule = false;
+  $("rang").textContent = `Défi ${iDefi+1} sur ${DEFIS.length}`;
+  $("dQuestion").textContent = d.question;
+  $("dInstruction").innerHTML = d.instruction;
+  $("dRetour").className = "retour";
+  $("dSuivant").hidden = true;
+  $("reinit").className = d.souligneReinit ? "souligne" : "";
+  afficherChoixDefi();
+}
+
+function repondreDefi(i){
+  const d = DEFIS[iDefi], o = d.options[i];
+  dRepondu = true;
+  if (o.applique){
+    const c = o.applique.cible;
+    if ("marge" in o.applique) etat[c].marge = o.applique.marge;
+    if ("freq"  in o.applique) etat[c].freq  = o.applique.freq;
+    if ("duree" in o.applique) etat[c].duree = o.applique.duree;
+    syncCurseurs(); rendre();
+  }
+  [...$("dChoix").children].forEach((b, k) => {
+    b.disabled = true;
+    if (k === i) b.classList.add(o.juste ? "juste" : "faux");
+    else if (d.options[k].juste) b.classList.add("juste");
+  });
+  $("dVerdict").textContent = o.juste ? d.verdictJuste : d.verdictFaux;
+  $("dExplication").innerHTML = d.explication.map(p => `<p>${p}</p>`).join("");
+  $("dRetour").className = "retour visible " + (o.juste ? "ok" : "ko");
+  $("dSuivant").hidden = iDefi >= DEFIS.length - 1;
+  $("dSuivant").textContent = "Défi suivant";
+}
+
+$("dSuivant").addEventListener("click", () => {
+  if (iDefi < DEFIS.length-1){
+    iDefi++;
+    Object.assign(etat.d3n, DEPART.d3n); Object.assign(etat.rou, DEPART.rou);
+    syncCurseurs(); rendre(); chargerDefi();
+    $("defi").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+});
+$("reinit").addEventListener("click", () => {
+  Object.assign(etat.d3n, DEPART.d3n); Object.assign(etat.rou, DEPART.rou);
+  syncCurseurs(); rendre();
+});
+
+/* ===================== QUIZ ===================== */
+let iQ = 0, justes = 0, qRepondu = false;
+
+function construireJauge(){ $("jauge").innerHTML = QUESTIONS.map(()=>"<span></span>").join(""); }
+function majJauge(){
+  [...$("jauge").children].forEach((s,i) => {
+    s.className = i < iQ ? (s.dataset.ok === "1" ? "faite" : "ratee") : (i === iQ ? "active" : "");
+  });
+}
+
+function chargerQ(){
+  const q = QUESTIONS[iQ];
+  qRepondu = false;
+  $("qRang").textContent = `Question ${iQ+1} sur ${QUESTIONS.length}`;
+  $("qEnonce").textContent = q.enonce;
+  const sit = $("qSituation");
+  if (q.situation){ sit.innerHTML = q.situation; sit.style.display = "block"; } else sit.style.display = "none";
+  const zone = $("qChoix"); zone.innerHTML = "";
+  q.options.forEach((o,i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = o.texte;
+    b.addEventListener("click", () => repondreQ(i));
+    zone.appendChild(b);
+  });
+  $("qRetour").className = "retour";
+  $("qSuivant").hidden = true;
+  majJauge();
+}
+
+function repondreQ(i){
+  if (qRepondu) return;
+  qRepondu = true;
+  const q = QUESTIONS[iQ], o = q.options[i];
+  if (o.juste) justes++;
+  $("jauge").children[iQ].dataset.ok = o.juste ? "1" : "0";
+  [...$("qChoix").children].forEach((b,k) => {
+    b.disabled = true;
+    if (k === i) b.classList.add(o.juste ? "juste" : "faux");
+    else if (q.options[k].juste) b.classList.add("juste");
+  });
+  $("qVerdict").textContent = o.juste ? q.verdictJuste : q.verdictFaux;
+  $("qExplication").innerHTML = q.explication.map(p => `<p>${p}</p>`).join("");
+  $("qRetour").className = "retour visible " + (o.juste ? "ok" : "ko");
+  $("qSuivant").hidden = false;
+  $("qSuivant").textContent = iQ < QUESTIONS.length-1 ? "Question suivante" : "Voir le bilan";
+}
+
+$("qSuivant").addEventListener("click", () => {
+  if (iQ < QUESTIONS.length-1){ iQ++; chargerQ(); $("quiz").scrollIntoView({behavior:"smooth",block:"start"}); }
+  else bilanQ();
+});
+
+function bilanQ(){
+  iQ = QUESTIONS.length; majJauge();
+  let titre, mot;
+  if (justes === 5){ titre = "Rien ne vous a échappé."; mot = "Vous savez calculer une valeur à vie et vous en connaissez les limites."; }
+  else if (justes >= 3){ titre = "L'essentiel est acquis."; mot = "Relisez les explications des questions manquées avant de passer à votre portefeuille."; }
+  else { titre = "Reprenez le module."; mot = "Les trois facteurs et leurs limites méritent un second passage. L'activité reste accessible plus haut."; }
+  $("quiz").innerHTML =
+    '<div class="bilan"><p class="score">'+justes+'<small> / '+QUESTIONS.length+'</small></p>' +
+    '<h3>'+titre+'</h3><p>'+mot+'</p>' +
+    '<div class="actions"><button type="button" id="qRejouer">Refaire le quiz</button></div></div>';
+  $("qRejouer").addEventListener("click", () => location.reload());
+  $("cloture").hidden = false;
+  requestAnimationFrame(() => $("cloture").scrollIntoView({behavior:"smooth",block:"start"}));
+}
+
+/* ===================== SATISFACTION ===================== */
+const ECHELLE = ["Pas du tout","Plutôt non","Plutôt oui","Tout à fait"];
+let reponses = 0;
+document.querySelectorAll(".sq").forEach(sq => {
+  const zone = sq.querySelector(".echelle");
+  ECHELLE.forEach(lab => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = lab;
+    b.addEventListener("click", () => {
+      if (sq.dataset.fait === "1") return;
+      sq.dataset.fait = "1"; reponses++;
+      [...zone.children].forEach(x => { x.disabled = true; });
+      b.classList.add("choisi");
+      if (reponses === 2) $("merci").classList.add("visible");
+    });
+    zone.appendChild(b);
+  });
+});
+
+/* ===================== BOUTONS D'ÉTAPE ===================== */
+$("bActivite").addEventListener("click", () => reveler("etape2", "bActivite"));
+$("bSimulateur").addEventListener("click", () => reveler("simulateur", "bSimulateur"));
+$("bQuiz").addEventListener("click", () => reveler("etape3", "bQuiz"));
+$("bAvis").addEventListener("click", () => reveler("satis", "bAvis"));
+
+/* ===================== PROGRESSION ===================== */
+const liens = [...document.querySelectorAll(".progression a")];
+const ORDRE = ["etape1","etape2","etape3"];
+function majProgression(){
+  const ligne = window.scrollY + 140;
+  let courant = ORDRE[0];
+  ORDRE.forEach(id => {
+    const el = $(id);
+    if (!el.hidden && el.offsetTop <= ligne) courant = id;
+  });
+  liens.forEach(l => {
+    l.classList.toggle("active", l.dataset.cible === courant);
+    l.classList.toggle("verrou", $(l.dataset.cible).hidden);
+  });
+}
+window.addEventListener("scroll", majProgression, { passive:true });
+window.addEventListener("resize", majProgression);
+majProgression();
+
+/* ===================== DÉMARRAGE ===================== */
+syncCurseurs(); rendre(); chargerDefi(); construireJauge(); chargerQ();
+</script>
+</body>
+</html>
